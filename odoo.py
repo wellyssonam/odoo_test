@@ -17,6 +17,7 @@ class connect_odoo(object):
         print "====== ODOO TEST ======"
         print "1 - Inserir cliente"
         print "2 - Atualizar RG cliente recém cadastrado pelo programa"
+        print "3 - Quantidade total de clientes na base de dados"
         print "0 - Sair"
         option = raw_input("Opção: ")
         
@@ -38,6 +39,10 @@ class connect_odoo(object):
             else:          
                 self.atualizar_cliente_rg()
             
+        elif option == "3":
+            print ">>>> 3 - Quantidade total de clientes na base de dados"
+            self.qtd_total_clientes()
+
         else:
             os.system('cls' if os.name == 'nt' else 'clear')
             self.menu()
@@ -91,6 +96,12 @@ class connect_odoo(object):
         except:
             print "Não foi possível atualizar cadastro do cliente!"
         
+        self.waiting_message_return()
+
+    def qtd_total_clientes(self):
+        # 3 - Realizar uma consulta para saber quantos *clientes existem na base de dados.
+        qtd_clientes = self.model.execute_kw(self.dic_info["db"], self.uid, self.dic_info["password"], "res.partner", "search_count", [[["customer", "=", True]]])
+        print "Qtd. Clientes: " + str(qtd_clientes)
         self.waiting_message_return()
 
     def waiting_message_return(self):
