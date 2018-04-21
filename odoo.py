@@ -19,6 +19,7 @@ class connect_odoo(object):
         print "2 - Atualizar RG cliente recém cadastrado pelo programa"
         print "3 - Quantidade total de clientes na base de dados"
         print "4 - Listar 10 primeiros clientes em ordem alfabética"
+        print "5 - Informações sobre a maior venda realizada"
         print "0 - Sair"
         option = raw_input("Opção: ")
         
@@ -46,10 +47,11 @@ class connect_odoo(object):
         
         elif option == "4":
             print ">>>> 4 - Listar 10 primeiros clientes em ordem alfabética"
-            model_name = "res.partner"
-            condition = [[["customer", "=", True]]]
-            dic_look = {"fields": ["name", "city_id"], "limit": 10, "order": "name asc"}
-            self.imprimir_info_quant_clientes(model_name, condition, dic_look)
+            self.imprimir_info_quant_clientes()
+        
+        elif option == "5":
+            print ">>>> 5 - Informações sobre a maior venda realizada"
+            self.mostrar_dados_maior_venda()
 
         else:
             os.system('cls' if os.name == 'nt' else 'clear')
@@ -116,11 +118,38 @@ class connect_odoo(object):
         info = self.model.execute_kw(self.dic_info["db"], self.uid, self.dic_info["password"], model_name, "search_read", condition, dic_look)
         return info
 
-    def imprimir_info_quant_clientes(self, model_name, condition, dic_look):
+    def imprimir_info_quant_clientes(self):
         # 4 - Listar os 10 primeiros clientes por ordem alfabética (Nome e Cidade que mora).
+        model_name = "res.partner"
+        condition = [[["customer", "=", True]]]
+        dic_look = {"fields": ["name", "city_id"], "limit": 10, "order": "name asc"}
         clientes = self.info_buscando_gravacoes(model_name, condition, dic_look)
         for cliente in clientes:
             print "Nome: " + cliente["name"] + "\n" + "Cidade: " + (cliente["city_id"][1] if cliente["city_id"] is not False else "Não existe") + "\n"
+        self.waiting_message_return()
+
+    def mostrar_dados_maior_venda(self):
+        # 5 - Utilizando a api busque os dados da maior venda feita (mostre os dados do cliente, e valor total)
+        model_name, condition = "account.invoice", [[["partner_id", "!=", False]]]
+        dic_look = {"fields": ["partner_id", "amount_total"], "limit": 1, "order": "amount_total desc"}
+        venda = self.info_buscando_gravacoes(model_name, condition, dic_look)
+        cliente_ids = venda[0]["partner_id"][0]
+        valor_total = str(venda[0]["amount_total"])
+
+        # acessando informações do cliente
+        dic_look = {"fields": ["name", "street", "number", "district", "street2", "country_id", "state_id", "city_id", "zip", "phone", "email", "website"]}
+        dic_cliente = self.info_buscando_gravacoes("res.partner", [[["id", "=", cliente_ids]]], dic_look)[0]
+        print "Nome: ", dic_cliente["name"]
+        print "CEP: ", dic_cliente["zip"]
+        print "Endereço: ", dic_cliente["street"], ", ", dic_cliente["number"], " - ", dic_cliente["street2"]
+        print "Bairro: ", dic_cliente["district"]
+        print "Cidade: ", dic_cliente["city_id"][1] if dic_cliente["city_id"] is not False else ""
+        print "Estado: ", dic_cliente["state_id"][1] if dic_cliente["state_id"] is not False else ""
+        print "País: ", dic_cliente["country_id"][1] if dic_cliente["country_id"] is not False else ""
+        print "Telefone: ", dic_cliente["phone"]
+        print "E-mail: ", dic_cliente["email"]
+        print "Site: ", dic_cliente["website"]
+        print "\nValor Total: ", valor_total, "\n"
         self.waiting_message_return()
 
     def waiting_message_return(self):
