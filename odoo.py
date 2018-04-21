@@ -18,6 +18,7 @@ class connect_odoo(object):
         print "1 - Inserir cliente"
         print "2 - Atualizar RG cliente recém cadastrado pelo programa"
         print "3 - Quantidade total de clientes na base de dados"
+        print "4 - Listar 10 primeiros clientes em ordem alfabética"
         print "0 - Sair"
         option = raw_input("Opção: ")
         
@@ -42,6 +43,13 @@ class connect_odoo(object):
         elif option == "3":
             print ">>>> 3 - Quantidade total de clientes na base de dados"
             self.qtd_total_clientes()
+        
+        elif option == "4":
+            print ">>>> 4 - Listar 10 primeiros clientes em ordem alfabética"
+            model_name = "res.partner"
+            condition = [[["customer", "=", True]]]
+            dic_look = {"fields": ["name", "city_id"], "limit": 10, "order": "name asc"}
+            self.imprimir_info_quant_clientes(model_name, condition, dic_look)
 
         else:
             os.system('cls' if os.name == 'nt' else 'clear')
@@ -102,6 +110,17 @@ class connect_odoo(object):
         # 3 - Realizar uma consulta para saber quantos *clientes existem na base de dados.
         qtd_clientes = self.model.execute_kw(self.dic_info["db"], self.uid, self.dic_info["password"], "res.partner", "search_count", [[["customer", "=", True]]])
         print "Qtd. Clientes: " + str(qtd_clientes)
+        self.waiting_message_return()
+
+    def info_buscando_gravacoes(self, model_name, condition, dic_look):
+        info = self.model.execute_kw(self.dic_info["db"], self.uid, self.dic_info["password"], model_name, "search_read", condition, dic_look)
+        return info
+
+    def imprimir_info_quant_clientes(self, model_name, condition, dic_look):
+        # 4 - Listar os 10 primeiros clientes por ordem alfabética (Nome e Cidade que mora).
+        clientes = self.info_buscando_gravacoes(model_name, condition, dic_look)
+        for cliente in clientes:
+            print "Nome: " + cliente["name"] + "\n" + "Cidade: " + (cliente["city_id"][1] if cliente["city_id"] is not False else "Não existe") + "\n"
         self.waiting_message_return()
 
     def waiting_message_return(self):
