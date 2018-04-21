@@ -20,6 +20,7 @@ class connect_odoo(object):
         print "3 - Quantidade total de clientes na base de dados"
         print "4 - Listar 10 primeiros clientes em ordem alfabética"
         print "5 - Informações sobre a maior venda realizada"
+        print "6 - Informações mais detalahdas sobre a maior venda realizada"
         print "0 - Sair"
         option = raw_input("Opção: ")
         
@@ -52,6 +53,11 @@ class connect_odoo(object):
         elif option == "5":
             print ">>>> 5 - Informações sobre a maior venda realizada"
             self.mostrar_dados_maior_venda()
+            self.waiting_message_return()
+        
+        elif option == "6":
+            print ">>>> 6 - Informações mais detalahdas sobre a maior venda realizada"
+            self.mostrar_dados_maior_venda_detalhado()
 
         else:
             os.system('cls' if os.name == 'nt' else 'clear')
@@ -150,6 +156,21 @@ class connect_odoo(object):
         print "E-mail: ", dic_cliente["email"]
         print "Site: ", dic_cliente["website"]
         print "\nValor Total: ", valor_total, "\n"
+        return venda[0]
+
+    def mostrar_dados_maior_venda_detalhado(self):
+        # 6 - O administrador agora quer mais informações e pede que você liste juntamente os produtos que foram comprados e o valor total de cada.
+        dic_venda = self.mostrar_dados_maior_venda()
+        invoice_line_ids = self.info_buscando_gravacoes("account.invoice", [[["id", "=", dic_venda["id"]]]], {"fields": ["invoice_line_ids"]})[0]
+        invoice_line_ids =  map(lambda line_id: line_id, invoice_line_ids["invoice_line_ids"])
+        invoice_line = self.info_buscando_gravacoes("account.invoice.line", [[["id", "in", invoice_line_ids]]], {"fields": ["product_id", "quantity", "price_unit"]})
+        
+        print ">>> Produto(s)"
+        for line in invoice_line:
+            print "Produto: ", line["product_id"][1]
+            print "Quantidade: ", line["quantity"]
+            print "Preço Unid.: ", line["price_unit"], "\n"
+            
         self.waiting_message_return()
 
     def waiting_message_return(self):
