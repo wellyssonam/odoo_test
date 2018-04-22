@@ -21,6 +21,7 @@ class connect_odoo(object):
         print "4 - Listar 10 primeiros clientes em ordem alfabética"
         print "5 - Informações sobre a maior venda realizada"
         print "6 - Informações mais detalahdas sobre a maior venda realizada"
+        print "7 - Consultar percentual das vendas"
         print "0 - Sair"
         option = raw_input("Opção: ")
         
@@ -58,6 +59,10 @@ class connect_odoo(object):
         elif option == "6":
             print ">>>> 6 - Informações mais detalahdas sobre a maior venda realizada"
             self.mostrar_dados_maior_venda_detalhado()
+        
+        elif option == "7":
+            print ">>>> 7 - Consultar percentual das vendas"
+            self.consultar_percentual_vendas()
 
         else:
             os.system('cls' if os.name == 'nt' else 'clear')
@@ -171,6 +176,22 @@ class connect_odoo(object):
             print "Quantidade: ", line["product_uom_qty"]
             print "Preço Unid.: ", line["price_unit"], "\n"
             
+        self.waiting_message_return()
+
+    def consultar_percentual_vendas(self):
+        # 7 - Um informação muito importante ao pessoal de vendas é saber qual o percentual de vendas que estão sendo fechadas.
+        list_dic_order = self.info_buscando_gravacoes("sale.order", [[["id", "!=", False]]], {"fields": ["state", "amount_total"]})
+        qtd_total = len(list_dic_order)
+        dic_order = {"draft": [], "sent": [], "sale": []}
+        map(lambda order: dic_order[order["state"]].append(order["amount_total"]), list_dic_order)
+        perc_draft = (float(len(dic_order["draft"]))/qtd_total)*100
+        print "\nCotação: ", sum(dic_order["draft"]), "(" + str(round(perc_draft, 2)) + "%)"
+        perc_sent = (float(len(dic_order["sent"]))/qtd_total)*100
+        print "Cotação Enviada: ", sum(dic_order["sent"]), "(" + str(round(perc_sent, 2)) + "%)"
+        perc_sale = (float(len(dic_order["sale"]))/qtd_total)*100
+        print "Ordem de Venda: ", sum(dic_order["sale"]), "(" + str(round(perc_sale, 2)) + "%)"
+        print "Total Venda (%): ", str(round(perc_draft + perc_sent + perc_sale, 2)) + "%\n"
+        
         self.waiting_message_return()
 
     def waiting_message_return(self):
