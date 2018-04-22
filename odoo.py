@@ -27,8 +27,9 @@ class connect_odoo(object):
         print "7 - Consultar percentual das vendas"
         print "8 - Valor total das faturas referente a mês e ano"
         print "9 - Criar orçamento para cliente criado"
+        print "10 - Confirmar venda para orçamento recém criado para cliente"
         print "0 - Sair"
-        option = raw_input("Opção: ")
+        option = raw_input("Opção(0-10): ")
         
         if option == "0":
             sys.exit()
@@ -90,6 +91,14 @@ class connect_odoo(object):
                 self.waiting_message_return()
             else:          
                 self.criar_orcamento_cliente_criado()
+
+        elif option == "10":
+            print ">>>> 10 - Confirmar venda para orçamento recém criado para cliente"
+            if self.id_last_sale_order is False:
+                print "Depois que o programa iniciou nenhum orçamento foi criado!"
+                self.waiting_message_return()
+            else:          
+                self.confirmar_venda_orcamento_cliente()
 
         else:
             os.system('cls' if os.name == 'nt' else 'clear')
@@ -252,6 +261,17 @@ class connect_odoo(object):
         except:
             print "Não foi possível criar ordem de venda!"
         
+        self.waiting_message_return()
+
+    def confirmar_venda_orcamento_cliente(self):
+        # 10 - Você gostou muito do preço do produto e agora decidiu comprar o mesmo, você via api deve confirmar a venda.
+        list_dic_order = self.info_buscando_gravacoes("sale.order", [[["id", "=", self.id_last_sale_order]]], {"fields": ["state"]})
+        if list_dic_order[0]["state"] == "sale":
+            print "A situação atual já se encontra como ORDEM DE VENDA!"
+        else:
+            self.model.execute_kw(self.dic_info["db"], self.uid, self.dic_info["password"], 'sale.order', 'action_confirm', [[self.id_last_sale_order]])
+            print "Situação passou a ser ORDEM DE VENDA"
+
         self.waiting_message_return()
 
     def waiting_message_return(self):
