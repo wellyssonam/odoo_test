@@ -136,7 +136,7 @@ class connect_odoo(object):
 
     def mostrar_dados_maior_venda(self):
         # 5 - Utilizando a api busque os dados da maior venda feita (mostre os dados do cliente, e valor total)
-        model_name, condition = "account.invoice", [[["partner_id", "!=", False]]]
+        model_name, condition = "sale.order", [[["partner_id", "!=", False]]]
         dic_look = {"fields": ["partner_id", "amount_total"], "limit": 1, "order": "amount_total desc"}
         venda = self.info_buscando_gravacoes(model_name, condition, dic_look)
         cliente_ids = venda[0]["partner_id"][0]
@@ -161,14 +161,14 @@ class connect_odoo(object):
     def mostrar_dados_maior_venda_detalhado(self):
         # 6 - O administrador agora quer mais informações e pede que você liste juntamente os produtos que foram comprados e o valor total de cada.
         dic_venda = self.mostrar_dados_maior_venda()
-        invoice_line_ids = self.info_buscando_gravacoes("account.invoice", [[["id", "=", dic_venda["id"]]]], {"fields": ["invoice_line_ids"]})[0]
-        invoice_line_ids =  map(lambda line_id: line_id, invoice_line_ids["invoice_line_ids"])
-        invoice_line = self.info_buscando_gravacoes("account.invoice.line", [[["id", "in", invoice_line_ids]]], {"fields": ["product_id", "quantity", "price_unit"]})
+        order_line_ids = self.info_buscando_gravacoes("sale.order", [[["id", "=", dic_venda["id"]]]], {"fields": ["order_line"]})[0]
+        order_line_ids =  map(lambda line_id: line_id, order_line_ids["order_line"])
+        order_line = self.info_buscando_gravacoes("sale.order.line", [[["id", "in", order_line_ids]]], {"fields": ["product_id", "product_uom_qty", "price_unit"]})
         
         print ">>> Produto(s)"
-        for line in invoice_line:
+        for line in order_line:
             print "Produto: ", line["product_id"][1]
-            print "Quantidade: ", line["quantity"]
+            print "Quantidade: ", line["product_uom_qty"]
             print "Preço Unid.: ", line["price_unit"], "\n"
             
         self.waiting_message_return()
