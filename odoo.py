@@ -3,6 +3,8 @@ import xmlrpclib
 import sys
 import os
 import time
+from datetime import datetime, date
+from dateutil.relativedelta import relativedelta
 
 class connect_odoo(object):
 
@@ -22,6 +24,7 @@ class connect_odoo(object):
         print "5 - Informações sobre a maior venda realizada"
         print "6 - Informações mais detalahdas sobre a maior venda realizada"
         print "7 - Consultar percentual das vendas"
+        print "8 - Valor total das faturas referente a mês e ano"
         print "0 - Sair"
         option = raw_input("Opção: ")
         
@@ -63,6 +66,20 @@ class connect_odoo(object):
         elif option == "7":
             print ">>>> 7 - Consultar percentual das vendas"
             self.consultar_percentual_vendas()
+        
+        elif option == "8":
+            print ">>>> 8 - Valor total das faturas referente a mês e ano"
+            flag = False
+            try:
+                mes = int(raw_input("Digite mês(1-12): "))
+                ano = int(raw_input("Digite ano(ex: 2018): "))
+                flag = True
+            except:
+                print "Valor incorreto!\nTente novamente ao retornar para o menu."
+                self.waiting_message_return()
+
+            if flag:
+                self.valor_total_faturas_mes_ano(mes, ano)
 
         else:
             os.system('cls' if os.name == 'nt' else 'clear')
@@ -192,6 +209,22 @@ class connect_odoo(object):
         print "Ordem de Venda: ", sum(dic_order["sale"]), "(" + str(round(perc_sale, 2)) + "%)"
         print "Total Venda (%): ", str(round(perc_draft + perc_sent + perc_sale, 2)) + "%\n"
         
+        self.waiting_message_return()
+
+    def valor_total_faturas_mes_ano(self, mes, ano):
+        """
+        o mês de junho de 2018 na existia no banco, então dei a liberdade do usuário escolher mês e ano
+        """
+        # 8 - Vamos ajudar o financeiro agora, você deve mostrar qual o valor total de faturas (notas fiscais) do mês de junho de 2017.
+        data_inicio, data_fim = date(ano, mes, 1), (datetime(ano, mes, 1, 0, 0, 0) + relativedelta(months=+1)).date()
+        print "Data Início: ", data_inicio
+        print "Data Fim: ", data_fim
+        list_dic_invoice = self.info_buscando_gravacoes("account.invoice", [[["date_invoice", ">=", str(data_inicio)], ["date_invoice", "<", str(data_fim)]]], {"fields": ["date_invoice", "amount_total"]})
+        if list_dic_invoice:
+            print "Faturas ids: ", map(lambda invoice: invoice["id"], list_dic_invoice)
+            print "Valor Total: ", sum(map(lambda invoice: invoice["amount_total"], list_dic_invoice))
+        else:
+            print "Não foram encontradas faturas para esse mês e ano!"
         self.waiting_message_return()
 
     def waiting_message_return(self):
