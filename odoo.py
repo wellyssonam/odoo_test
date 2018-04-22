@@ -12,6 +12,7 @@ class connect_odoo(object):
         self.dic_info = dic_info
         self.uid = self.get_uid_user()
         self.id_last_client = False
+        self.id_last_sale_order = False
         self.model = self.init_call_method()
         self.menu()
 
@@ -25,6 +26,7 @@ class connect_odoo(object):
         print "6 - Informações mais detalahdas sobre a maior venda realizada"
         print "7 - Consultar percentual das vendas"
         print "8 - Valor total das faturas referente a mês e ano"
+        print "9 - Criar orçamento para cliente criado"
         print "0 - Sair"
         option = raw_input("Opção: ")
         
@@ -80,6 +82,14 @@ class connect_odoo(object):
 
             if flag:
                 self.valor_total_faturas_mes_ano(mes, ano)
+
+        elif option == "9":
+            print ">>>> 9 - Criar orçamento para cliente criado"
+            if self.id_last_client is False:
+                print "Depois que o programa iniciou nenhum cliente foi cadastrado!"
+                self.waiting_message_return()
+            else:          
+                self.criar_orcamento_cliente_criado()
 
         else:
             os.system('cls' if os.name == 'nt' else 'clear')
@@ -144,6 +154,10 @@ class connect_odoo(object):
 
     def info_buscando_gravacoes(self, model_name, condition, dic_look):
         info = self.model.execute_kw(self.dic_info["db"], self.uid, self.dic_info["password"], model_name, "search_read", condition, dic_look)
+        return info
+
+    def fazer_gravacao(self, model_name, dic_create):
+        info = self.model.execute_kw(self.dic_info["db"], self.uid, self.dic_info["password"], model_name, "create", [dic_create])
         return info
 
     def imprimir_info_quant_clientes(self):
@@ -225,6 +239,19 @@ class connect_odoo(object):
             print "Valor Total: ", sum(map(lambda invoice: invoice["amount_total"], list_dic_invoice))
         else:
             print "Não foram encontradas faturas para esse mês e ano!"
+        self.waiting_message_return()
+
+    def criar_orcamento_cliente_criado(self):
+        # 9 - Para o cliente que você criou, você deve criar um orçamento para o mesmo com pelo menos um produto"
+        order_ids, dic_order = False, {"partner_id": self.id_last_client, "order_line": [(0, 0, {"product_id": 2})]}
+        try:
+            order_ids = self.fazer_gravacao("sale.order", dic_order)
+            if order_ids != False:
+                self.id_last_sale_order = order_ids
+                print "Ordem de venda criada com sucesso!"
+        except:
+            print "Não foi possível criar ordem de venda!"
+        
         self.waiting_message_return()
 
     def waiting_message_return(self):
